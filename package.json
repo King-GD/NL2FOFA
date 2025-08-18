@@ -1,0 +1,33 @@
+{
+  "name": "nl2fofa",
+  "version": "1.0.0",
+  "description": "A command-line AI tool that converts natural language to FOFA queries",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "clean": "rimraf dist"
+  },
+  "keywords": ["fofa", "ai", "cli", "security", "search", "cybersecurity", "nlp", "typescript"],
+  "author": "King-GD",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/King-GD/NL2FOFA.git"
+  },
+  "homepage": "https://github.com/King-GD/NL2FOFA#readme",
+  "bugs": {
+    "url": "https://github.com/King-GD/NL2FOFA/issues"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "rimraf": "^5.0.5",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  }
+}
