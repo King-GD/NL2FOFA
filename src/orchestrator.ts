@@ -3,10 +3,10 @@
  * 项目的核心，负责接收用户输入，按顺序调用LLM Service和FOFA Service，管理整个工作流程
  */
 
-import { LLMService } from './llmService';
-import { FofaService } from './fofaService';
-import { ResultPresenter } from './resultPresenter';
-import { ProcessResult, LLMConfig, FofaConfig } from './types';
+import { LLMService } from './llmService.js';
+import { FofaService } from './fofaService.js';
+import { ResultPresenter } from './resultPresenter.js';
+import { ProcessResult, LLMConfig, FofaConfig } from './types.js';
 
 export class Orchestrator {
   private llmService: LLMService;

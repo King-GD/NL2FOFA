@@ -4,7 +4,7 @@
  */
 
 import axios from 'axios';
-import { FofaConfig, FofaResult, FofaApiResponse, FofaQueryParams } from './types';
+import { FofaConfig, FofaResult, FofaApiResponse, FofaQueryParams } from './types.js';
 
 export class FofaService {
   private config: FofaConfig;

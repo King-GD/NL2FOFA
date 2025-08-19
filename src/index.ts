@@ -6,8 +6,8 @@
  */
 
 import * as dotenv from 'dotenv';
-import { Orchestrator } from './orchestrator';
-import { LLMConfig, FofaConfig } from './types';
+import { Orchestrator } from './orchestrator.js';
+import { LLMConfig, FofaConfig } from './types.js';
 
 // 加载环境变量
 dotenv.config();

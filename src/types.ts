@@ -54,3 +54,23 @@ export interface ProcessResult {
   query?: string;
   explanation?: string;
 }
+
+// MCP工具相关类型
+export interface NaturalLanguageQueryArgs {
+  query: string;
+  size?: number;
+}
+
+export interface DirectFofaQueryArgs {
+  fofaQuery: string;
+  size?: number;
+}
+
+export interface QueryResult {
+  success: boolean;
+  results?: FofaResult[];
+  query?: string;
+  explanation?: string;
+  error?: string;
+  count?: number;
+}

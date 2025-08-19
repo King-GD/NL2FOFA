@@ -4,7 +4,7 @@
  */
 
 import axios from 'axios';
-import { LLMResponse, LLMConfig } from './types';
+import { LLMResponse, LLMConfig } from './types.js';
 
 export class LLMService {
   private config: LLMConfig;

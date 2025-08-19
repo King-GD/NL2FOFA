@@ -3,7 +3,7 @@
  * 负责将FOFA API返回的原始JSON数据美化成易于阅读的表格
  */
 
-import { FofaResult } from './types';
+import { FofaResult } from './types.js';
 
 export class ResultPresenter {
   

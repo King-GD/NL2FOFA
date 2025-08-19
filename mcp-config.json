@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "nl2fofa": {
+      "command": "node",
+      "args": ["dist/mcp-server.js"],
+      "cwd": "/path/to/NL2FOFA",
+      "env": {
+        "LLM_API_KEY": "your_llm_api_key_here",
+        "LLM_API_URL": "https://api.siliconflow.cn/v1/chat/completions",
+        "FOFA_EMAIL": "your_fofa_email@example.com",
+        "FOFA_API_KEY": "your_fofa_api_key_here"
+      }
+    }
+  }
+}
