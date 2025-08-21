@@ -3,8 +3,8 @@
  * 唯一职责：与LLM API通信，将自然语言转换为FOFA查询语法
  */
 
-import axios from 'axios';
-import { LLMResponse, LLMConfig } from './types.js';
+import axios from "axios";
+import { LLMResponse, LLMConfig } from "./types.js";
 
 export class LLMService {
   private config: LLMConfig;
@@ -25,37 +25,37 @@ export class LLMService {
       // 检测API类型并构建相应的请求
       const { requestData, headers } = this.buildRequest(prompt);
 
-      const response = await axios.post(
-        this.config.apiUrl,
-        requestData,
-        {
-          headers: headers,
-          timeout: 300000 // 5分钟超时
-        }
-      );
+      const response = await axios.post(this.config.apiUrl, requestData, {
+        headers: headers,
+        timeout: 300000, // 5分钟超时
+      });
 
       const content = this.extractContent(response.data);
-      
+
       // 尝试解析JSON响应
       try {
         // 清理响应内容，移除可能的markdown代码块标记
         let cleanContent = content.trim();
 
         // 移除markdown代码块标记
-        if (cleanContent.startsWith('```json')) {
-          cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-        } else if (cleanContent.startsWith('```')) {
-          cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+        if (cleanContent.startsWith("```json")) {
+          cleanContent = cleanContent
+            .replace(/^```json\s*/, "")
+            .replace(/\s*```$/, "");
+        } else if (cleanContent.startsWith("```")) {
+          cleanContent = cleanContent
+            .replace(/^```\s*/, "")
+            .replace(/\s*```$/, "");
         }
 
         // 尝试解析清理后的JSON
         const parsedResponse = JSON.parse(cleanContent);
         return {
           fofa_query: parsedResponse.fofa_query,
-          explanation: parsedResponse.explanation
+          explanation: parsedResponse.explanation,
         };
       } catch (parseError) {
-        console.error('Failed to parse LLM response as JSON:', content);
+        console.error("Failed to parse LLM response as JSON:", content);
 
         // 如果JSON解析失败，尝试从文本中提取信息
         const fallbackResult = this.extractFromText(content);
@@ -65,22 +65,25 @@ export class LLMService {
 
         return {
           fofa_query: null,
-          explanation: '无法解析LLM响应'
+          explanation: "无法解析LLM响应",
         };
       }
-
     } catch (error) {
-      console.error('LLM API调用失败:', error);
-      throw new Error(`LLM服务调用失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      console.error("LLM API调用失败:", error);
+      throw new Error(
+        `LLM服务调用失败: ${
+          error instanceof Error ? error.message : "未知错误"
+        }`
+      );
     }
   }
 
   /**
- * 构建发送给LLM的Prompt
- * @param userInput 用户输入
- * @returns 完整的prompt字符串
- */
-private buildPrompt(userInput: string): string {
+   * 构建发送给LLM的Prompt
+   * @param userInput 用户输入
+   * @returns 完整的prompt字符串
+   */
+  private buildPrompt(userInput: string): string {
     // 使用模板字符串构建一个结构清晰的Prompt
     return `你是一位世界级的网络安全情报专家，尤其擅长将自然语言精确地翻译为FOFA（网络空间测绘）的查询语法。你的任务是作为一个高精度的语法生成引擎来运作。
 
@@ -147,7 +150,7 @@ private buildPrompt(userInput: string): string {
 
 ## 需要处理的用户请求:
 ${userInput}`;
-}
+  }
 
   /**
    * 根据API类型构建请求数据和头部
@@ -158,23 +161,23 @@ ${userInput}`;
     const url = this.config.apiUrl.toLowerCase();
 
     // 硅基流动 API
-    if (url.includes('siliconflow.cn')) {
+    if (url.includes("siliconflow.cn")) {
       return {
         requestData: {
           model: "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
           messages: [
             {
               role: "user",
-              content: prompt
-            }
+              content: prompt,
+            },
           ],
           temperature: 0.1,
-          max_tokens: 500
+          max_tokens: 500,
         },
         headers: {
-          'Authorization': `Bearer ${this.config.apiKey}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${this.config.apiKey}`,
+          "Content-Type": "application/json",
+        },
       };
     }
 
@@ -185,16 +188,16 @@ ${userInput}`;
         messages: [
           {
             role: "user",
-            content: prompt
-          }
+            content: prompt,
+          },
         ],
         temperature: 0.1,
-        max_tokens: 500
+        max_tokens: 500,
       },
       headers: {
-        'Authorization': `Bearer ${this.config.apiKey}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `Bearer ${this.config.apiKey}`,
+        "Content-Type": "application/json",
+      },
     };
   }
 
@@ -214,7 +217,7 @@ ${userInput}`;
       return responseData.choices[0].message.content.trim();
     }
 
-    throw new Error('无法解析API响应格式');
+    throw new Error("无法解析API响应格式");
   }
 
   /**
@@ -231,23 +234,23 @@ ${userInput}`;
       if (queryMatch && explanationMatch) {
         return {
           fofa_query: queryMatch[1],
-          explanation: explanationMatch[1]
+          explanation: explanationMatch[1],
         };
       }
 
       // 如果没有找到标准格式，尝试其他模式
-      const lines = text.split('\n');
+      const lines = text.split("\n");
       let fofaQuery = null;
-      let explanation = '';
+      let explanation = "";
 
       for (const line of lines) {
-        if (line.includes('fofa_query') && line.includes(':')) {
+        if (line.includes("fofa_query") && line.includes(":")) {
           const match = line.match(/:\s*"([^"]+)"/);
           if (match) {
             fofaQuery = match[1];
           }
         }
-        if (line.includes('explanation') && line.includes(':')) {
+        if (line.includes("explanation") && line.includes(":")) {
           const match = line.match(/:\s*"([^"]+)"/);
           if (match) {
             explanation = match[1];
@@ -257,13 +260,12 @@ ${userInput}`;
 
       return {
         fofa_query: fofaQuery,
-        explanation: explanation || '从文本中提取的查询'
+        explanation: explanation || "从文本中提取的查询",
       };
-
     } catch (error) {
       return {
         fofa_query: null,
-        explanation: '文本解析失败'
+        explanation: "文本解析失败",
       };
     }
   }

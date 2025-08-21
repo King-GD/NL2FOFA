@@ -103,7 +103,7 @@ class NL2FOFAMCPServer {
         tools: [
           {
             name: 'natural_language_query',
-            description: '将自然语言转换为FOFA查询并执行搜索',
+            description: '自然语言转FOFA语法查询：将自然语言描述转换为FOFA查询语法并执行搜索',
             inputSchema: {
               type: 'object',
               properties: {
@@ -124,7 +124,7 @@ class NL2FOFAMCPServer {
           },
           {
             name: 'direct_fofa_query',
-            description: '直接执行FOFA查询语法搜索',
+            description: '直接FOFA语法查询：直接使用FOFA查询语法执行搜索，不进行自然语言转换',
             inputSchema: {
               type: 'object',
               properties: {
@@ -160,15 +160,14 @@ class NL2FOFAMCPServer {
         }
 
         switch (name) {
-          case 'natural_language_query': {
+          case 'natural_language_query': { 
             const typedArgs = args as unknown as NaturalLanguageQueryArgs;
             if (!typedArgs.query) {
               throw new Error('缺少必需参数: query');
             }
             return await this.handleNaturalLanguageQuery(typedArgs);
           }
-
-          case 'direct_fofa_query': {
+          case 'direct_fofa_query': { 
             const typedArgs = args as unknown as DirectFofaQueryArgs;
             if (!typedArgs.fofaQuery) {
               throw new Error('缺少必需参数: fofaQuery');
