@@ -1,17 +1,17 @@
-# NL2FOFA - 自然语言转FOFA查询工具
+# NL2FOFA - 自然语言转 FOFA 查询工具
 
-一个功能强大的AI工具，能够将自然语言转换为精确的FOFA查询语法，并自动执行查询返回格式化结果。它支持作为模型上下文协议 (MCP) 服务器运行，也可以作为传统的命令行工具 (CLI) 使用。
+一个功能强大的 AI 工具，能够将自然语言转换为精确的 FOFA 查询语法，并自动执行查询返回格式化结果。它支持作为模型上下文协议 (MCP) 服务器运行，也可以作为传统的命令行工具 (CLI) 使用。
 
 ## 🌟 核心特性
 
-- **🤖 自然语言驱动**: 使用大语言模型（LLM）将日常语言（如"查找美国的Nginx服务器"）转换为精确的FOFA查询语法 (`country="US" && app="nginx"`)
+- **🤖 自然语言驱动**: 使用大语言模型（LLM）将日常语言（如"查找美国的 Nginx 服务器"）转换为精确的 FOFA 查询语法 (`country="US" && app="nginx"`)
 - **⚡ 双模式运行**:
-  - **MCP服务器模式**: 可与任何支持MCP协议的AI客户端（如Claude Desktop, Cursor）无缝集成，作为其增强工具
-  - **CLI模式**: 提供传统的命令行界面，方便在终端中快速使用和集成到自动化脚本
-- **📊 结果美化与洞察**: 将FOFA返回的JSON数据格式化为易于阅读的表格，并自动生成端口和IP段的统计信息，帮助快速分析
+  - **MCP 服务器模式**: 可与任何支持 MCP 协议的 AI 客户端（如 Claude Desktop, Cursor）无缝集成，作为其增强工具
+  - **CLI 模式**: 提供传统的命令行界面，方便在终端中快速使用和集成到自动化脚本
+- **📊 结果美化与洞察**: 将 FOFA 返回的 JSON 数据格式化为易于阅读的表格，并自动生成端口和 IP 段的统计信息，帮助快速分析
 - **🛡️ 健壮性设计**: 包含输入验证、完善的错误处理和用户友好的错误提示，确保稳定运行
-- **🏗️ 清晰的模块化架构**: 代码结构清晰，分为LLM服务、FOFA服务、编排器和展示层，易于理解和扩展
-- **🔧 高度可配置**: 通过 `.env` 文件轻松配置LLM和FOFA的API密钥及端点
+- **🏗️ 清晰的模块化架构**: 代码结构清晰，分为 LLM 服务、FOFA 服务、编排器和展示层，易于理解和扩展
+- **🔧 高度可配置**: 通过 `.env` 文件轻松配置 LLM 和 FOFA 的 API 密钥及端点
 
 ## 🏗️ 架构设计
 
@@ -30,58 +30,51 @@ src/
 
 ### 工作流程:
 
-1. **输入**: CLI 或 MCP服务器 接收用户请求（自然语言或直接的FOFA语法）
+1. **输入**: CLI 或 MCP 服务器 接收用户请求（自然语言或直接的 FOFA 语法）
 2. **编排**: Orchestrator 接收请求
-3. **转换 (可选)**: 如果是自然语言，Orchestrator 调用 LLMService 将其转换为FOFA语法
+3. **转换 (可选)**: 如果是自然语言，Orchestrator 调用 LLMService 将其转换为 FOFA 语法
 4. **执行**: Orchestrator 调用 FofaService 执行查询
 5. **输出**: Orchestrator 使用 ResultPresenter 将结果格式化后呈现给用户
 
-## � API配置详解
+## � API 配置详解
 
-### LLM API配置
+### LLM API 配置
 
 本项目支持多种大语言模型服务，根据你的需求选择合适的服务商：
 
 #### 硅基流动（目前使用）
+
 ```env
 LLM_API_KEY=sk-your_siliconflow_key
 LLM_API_URL=https://api.siliconflow.cn/v1/chat/completions
 ```
+
 - **模型**: `deepseek-ai/DeepSeek-R1-Distill-Qwen-7B`
 
-
 #### OpenAI
+
 ```env
 LLM_API_KEY=sk-your_openai_key
 LLM_API_URL=https://api.openai.com/v1/chat/completions
 ```
-- **模型**: `gpt-3.5-turbo` (默认),
-- **优势**: 稳定性好，理解能力强，生态完善
-- **适用场景**: 对准确性要求高，复杂查询场景
 
-### FOFA API配置
+- **模型**: `gpt-3.5-turbo` (默认),
+
+### FOFA API 配置
 
 ```env
 FOFA_EMAIL=your_fofa_email@example.com
 FOFA_API_KEY=your_fofa_api_key
 ```
 
-获取FOFA API密钥：
-1. 注册FOFA账户：https://fofa.info
+获取 FOFA API 密钥：
+
+1. 注册 FOFA 账户：https://fofa.info
 2. 登录后进入个人中心
-3. 在API管理页面获取API Key
+3. 在 API 管理页面获取 API Key
 4. 确保账户有足够的查询次数
 
-### 模型选择建议
-
-| 场景 | 推荐模型 | 原因 |
-|------|----------|------|
-| 日常使用 | 硅基流动 DeepSeek | 成本低，中文好，速度快 |
-| 企业部署 | Azure OpenAI | 数据安全，服务稳定 |
-| 复杂查询 | OpenAI GPT-4 | 理解能力强，准确性高 |
-| 离线环境 | 本地模型 | 数据不出网，可定制 |
-
-## �🚀 快速开始
+## 🚀 快速开始
 
 ### 1. 环境准备
 
@@ -90,9 +83,10 @@ FOFA_API_KEY=your_fofa_api_key
 
 #### 支持的大语言模型
 
-本项目支持多种大语言模型服务，通过配置不同的API端点即可切换：
+本项目支持多种大语言模型服务，通过配置不同的 API 端点即可切换：
 
-**🔥 硅基流动（推荐）**
+**🔥 硅基流动（目前使用）**
+
 - 模型：`deepseek-ai/DeepSeek-R1-Distill-Qwen-7B`
 - 优势：性价比高，中文支持好，响应速度快
 - 配置：
@@ -102,6 +96,7 @@ FOFA_API_KEY=your_fofa_api_key
   ```
 
 **🤖 OpenAI**
+
 - 模型：`gpt-3.5-turbo`, `gpt-4`, `gpt-4-turbo`
 - 优势：效果稳定，理解能力强
 - 配置：
@@ -110,16 +105,7 @@ FOFA_API_KEY=your_fofa_api_key
   LLM_API_KEY=sk-your_openai_key
   ```
 
-**🌐 其他兼容服务**
-- 支持任何兼容OpenAI API格式的服务
-- 包括：Azure OpenAI、Claude API、本地部署的模型等
-- 配置：
-  ```env
-  LLM_API_URL=your_compatible_api_endpoint
-  LLM_API_KEY=your_api_key
-  ```
-
-> **注意**: 不同模型的效果可能有差异，推荐使用硅基流动的DeepSeek模型，在FOFA查询转换任务上表现优异。
+> **注意**: 不同模型的效果可能有差异
 
 ### 2. 安装
 
@@ -139,7 +125,7 @@ npm install
 cp .env.example .env
 ```
 
-然后，编辑 `.env` 文件，填入你的API密钥和账户信息：
+然后，编辑 `.env` 文件，填入你的 API 密钥和账户信息：
 
 ```env
 # LLM API 配置 (以硅基流动为例)
@@ -170,9 +156,6 @@ npm run build
 ```bash
 # 全局安装
 npm install -g .
-
-# 或者从npm仓库安装（如果已发布）
-npm install -g nl2fofa
 ```
 
 #### 2. 使用
@@ -194,7 +177,7 @@ nl2fofa --help
 nl2fofa -h
 ```
 
-### 方式二：使用npx（无需安装）
+### 方式二：使用 npx（无需安装）
 
 ```bash
 # 直接运行，无需全局安装
@@ -220,9 +203,9 @@ node dist/index.js --direct "server:nginx"
 node dist/index.js --help
 ```
 
-### 方式四：MCP服务器模式
+### 方式四：MCP 服务器模式
 
-启动一个本地服务器，使其可以被任何支持 MCP 协议的AI客户端调用。
+启动一个本地服务器，使其可以被任何支持 MCP 协议的 AI 客户端调用。
 
 #### 1. 启动服务器
 
@@ -234,23 +217,21 @@ npm start
 npm run dev
 ```
 
-服务器启动后，会在标准输入输出流上监听来自MCP客户端的请求。
+服务器启动后，会在标准输入输出流上监听来自 MCP 客户端的请求。
 
-#### 2. MCP客户端配置 (以Claude Desktop为例)
+#### 2. MCP 客户端配置 (以 Cursor 为例)
 
-在Claude Desktop的配置文件中，添加以下服务器配置：
+在 Cursor 的配置文件中，添加以下服务器配置：
 
-- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+**方式 A: 使用相对路径（推荐）**
 
-**方式A: 使用相对路径（推荐）**
 ```json
 {
   "mcpServers": {
     "nl2fofa": {
       "command": "node",
       "args": ["dist/mcp-server.js"],
-      "cwd": "E:/code/NL2FOFA",
+      "cwd": "path:/file/NL2FOFA",
       "env": {
         "LLM_API_KEY": "sk-your_llm_api_key_here",
         "LLM_API_URL": "https://api.siliconflow.cn/v1/chat/completions",
@@ -262,13 +243,14 @@ npm run dev
 }
 ```
 
-**方式B: 使用绝对路径**
+**方式 B: 使用绝对路径**
+
 ```json
 {
   "mcpServers": {
     "nl2fofa": {
       "command": "node",
-      "args": ["E:/code/NL2FOFA/dist/mcp-server.js"],
+      "args": ["path:/file/NL2FOFA/dist/mcp-server.js"],
       "env": {
         "LLM_API_KEY": "sk-your_llm_api_key_here",
         "LLM_API_URL": "https://api.siliconflow.cn/v1/chat/completions",
@@ -280,7 +262,8 @@ npm run dev
 }
 ```
 
-**方式C: 全局安装后使用（最简洁）**
+**方式 C: 全局安装后使用（最简洁）**
+
 ```bash
 # 先全局安装
 npm install -g .
@@ -302,17 +285,18 @@ npm install -g .
 }
 ```
 
-> **路径说明**: 
+> **路径说明**:
+>
 > - `args` 中的路径是相对于 `cwd` 工作目录的
-> - 如果不设置 `cwd`，则相对于MCP客户端的工作目录
+> - 如果不设置 `cwd`，则相对于 MCP 客户端的工作目录
 > - 全局安装后可直接使用命令名，无需指定路径
 
 #### 3. 可用工具
 
-服务器启动后，会向MCP客户端提供以下工具：
+服务器启动后，会向 MCP 客户端提供以下工具：
 
-- `natural_language_query(query: string, size?: number)`: 将自然语言转换为FOFA查询并执行
-- `direct_fofa_query(fofaQuery: string, size?: number)`: 直接执行FOFA查询语法
+- `natural_language_query(query: string, size?: number)`: 将自然语言转换为 FOFA 查询并执行
+- `direct_fofa_query(fofaQuery: string, size?: number)`: 直接执行 FOFA 查询语法
 
 ## 💻 开发与脚本
 
@@ -329,9 +313,9 @@ npm install -g .
 
 ## ⚠️ 注意事项
 
-- **API密钥安全**: 保护好你的 `.env` 文件，不要将你的API密钥提交到版本控制系统
+- **API 密钥安全**: 保护好你的 `.env` 文件，不要将你的 API 密钥提交到版本控制系统
 - **合法使用**: 本工具仅应用于授权的、合法的安全研究和资产测绘目的
-- **路径配置**: 在配置MCP客户端时，请确保 `cwd` 工作目录指向正确的项目根目录绝对路径
+- **路径配置**: 在配置 MCP 客户端时，请确保 `cwd` 工作目录指向正确的项目根目录绝对路径
 
 ## 📄 许可证
 
