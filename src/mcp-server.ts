@@ -353,7 +353,7 @@ async function main() {
   await server.start();
 }
 
-// 直接启动服务器（ES模块中简化处理）
+// 直接启动服务器
 main().catch((error) => {
   console.error('❌ 服务器启动失败:', error);
   process.exit(1);

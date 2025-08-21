@@ -1,249 +1,338 @@
-# NL2FOFA - 自然语言转FOFA查询MCP服务
+# NL2FOFA - 自然语言转FOFA查询工具
 
-一个基于Model Context Protocol (MCP)的AI服务，能够将自然语言转换为精确的FOFA查询语法，并自动执行查询返回格式化结果。支持作为MCP服务器运行，也可以作为传统命令行工具使用。
+一个功能强大的AI工具，能够将自然语言转换为精确的FOFA查询语法，并自动执行查询返回格式化结果。它支持作为模型上下文协议 (MCP) 服务器运行，也可以作为传统的命令行工具 (CLI) 使用。
 
-## 🌟 特性
+## 🌟 核心特性
 
-- **MCP协议支持**: 符合Model Context Protocol标准，可与支持MCP的AI客户端集成
-- **自然语言处理**: 使用大语言模型将用户的自然语言描述转换为FOFA查询语法
-- **智能映射**: 自动将概念映射到FOFA语法（如Spring Boot → app="Apache-Spring-Boot"）
-- **地理位置识别**: 自动将地理位置转换为国家代码（如中国 → country="CN"）
-- **双模式运行**: 支持MCP服务器模式和传统CLI模式
-- **结果美化**: 将查询结果格式化为易读的表格，包含统计信息
-- **模块化架构**: 采用清晰的模块化架构，代码结构清晰
-- **错误处理**: 完善的错误处理和用户友好的错误提示
+- **🤖 自然语言驱动**: 使用大语言模型（LLM）将日常语言（如"查找美国的Nginx服务器"）转换为精确的FOFA查询语法 (`country="US" && app="nginx"`)
+- **⚡ 双模式运行**:
+  - **MCP服务器模式**: 可与任何支持MCP协议的AI客户端（如Claude Desktop, Cursor）无缝集成，作为其增强工具
+  - **CLI模式**: 提供传统的命令行界面，方便在终端中快速使用和集成到自动化脚本
+- **📊 结果美化与洞察**: 将FOFA返回的JSON数据格式化为易于阅读的表格，并自动生成端口和IP段的统计信息，帮助快速分析
+- **🛡️ 健壮性设计**: 包含输入验证、完善的错误处理和用户友好的错误提示，确保稳定运行
+- **🏗️ 清晰的模块化架构**: 代码结构清晰，分为LLM服务、FOFA服务、编排器和展示层，易于理解和扩展
+- **🔧 高度可配置**: 通过 `.env` 文件轻松配置LLM和FOFA的API密钥及端点
 
 ## 🏗️ 架构设计
 
-项目采用模块化架构，支持MCP协议：
+项目采用关注点分离的模块化架构，确保各部分职责单一，易于维护。
 
 ```
 src/
-├── mcp-server.ts     # MCP服务器入口，符合MCP协议
-├── index.ts          # CLI程序入口，处理命令行参数
-├── orchestrator.ts   # 编排器，管理整个工作流程
-├── llmService.ts     # LLM服务，处理自然语言转换
-├── fofaService.ts    # FOFA服务，包含验证器和执行器
-├── resultPresenter.ts # 结果处理器，美化输出
-└── types.ts          # TypeScript类型定义
+├── index.ts             # 命令行(CLI)程序入口
+├── mcp-server.ts        # MCP服务器程序入口
+├── orchestrator.ts      # 核心编排器，负责管理整个工作流程
+├── llmService.ts        # LLM服务，处理自然语言到FOFA语法的转换
+├── fofaService.ts       # FOFA服务，负责执行查询和API交互
+├── resultPresenter.ts   # 结果处理器，美化输出为表格和统计信息
+└── types.ts             # 全局TypeScript类型定义
 ```
 
-## 🚀 快速开始
+### 工作流程:
 
-### 1. 安装依赖
+1. **输入**: CLI 或 MCP服务器 接收用户请求（自然语言或直接的FOFA语法）
+2. **编排**: Orchestrator 接收请求
+3. **转换 (可选)**: 如果是自然语言，Orchestrator 调用 LLMService 将其转换为FOFA语法
+4. **执行**: Orchestrator 调用 FofaService 执行查询
+5. **输出**: Orchestrator 使用 ResultPresenter 将结果格式化后呈现给用户
+
+## � API配置详解
+
+### LLM API配置
+
+本项目支持多种大语言模型服务，根据你的需求选择合适的服务商：
+
+#### 硅基流动（目前使用）
+```env
+LLM_API_KEY=sk-your_siliconflow_key
+LLM_API_URL=https://api.siliconflow.cn/v1/chat/completions
+```
+- **模型**: `deepseek-ai/DeepSeek-R1-Distill-Qwen-7B`
+
+
+#### OpenAI
+```env
+LLM_API_KEY=sk-your_openai_key
+LLM_API_URL=https://api.openai.com/v1/chat/completions
+```
+- **模型**: `gpt-3.5-turbo` (默认),
+- **优势**: 稳定性好，理解能力强，生态完善
+- **适用场景**: 对准确性要求高，复杂查询场景
+
+### FOFA API配置
+
+```env
+FOFA_EMAIL=your_fofa_email@example.com
+FOFA_API_KEY=your_fofa_api_key
+```
+
+获取FOFA API密钥：
+1. 注册FOFA账户：https://fofa.info
+2. 登录后进入个人中心
+3. 在API管理页面获取API Key
+4. 确保账户有足够的查询次数
+
+### 模型选择建议
+
+| 场景 | 推荐模型 | 原因 |
+|------|----------|------|
+| 日常使用 | 硅基流动 DeepSeek | 成本低，中文好，速度快 |
+| 企业部署 | Azure OpenAI | 数据安全，服务稳定 |
+| 复杂查询 | OpenAI GPT-4 | 理解能力强，准确性高 |
+| 离线环境 | 本地模型 | 数据不出网，可定制 |
+
+## �🚀 快速开始
+
+### 1. 环境准备
+
+- 安装 Node.js (建议 v18.0 或更高版本)
+- 获取有效的 FOFA API 密钥 和 LLM API 密钥
+
+#### 支持的大语言模型
+
+本项目支持多种大语言模型服务，通过配置不同的API端点即可切换：
+
+**🔥 硅基流动（推荐）**
+- 模型：`deepseek-ai/DeepSeek-R1-Distill-Qwen-7B`
+- 优势：性价比高，中文支持好，响应速度快
+- 配置：
+  ```env
+  LLM_API_URL=https://api.siliconflow.cn/v1/chat/completions
+  LLM_API_KEY=sk-your_siliconflow_key
+  ```
+
+**🤖 OpenAI**
+- 模型：`gpt-3.5-turbo`, `gpt-4`, `gpt-4-turbo`
+- 优势：效果稳定，理解能力强
+- 配置：
+  ```env
+  LLM_API_URL=https://api.openai.com/v1/chat/completions
+  LLM_API_KEY=sk-your_openai_key
+  ```
+
+**🌐 其他兼容服务**
+- 支持任何兼容OpenAI API格式的服务
+- 包括：Azure OpenAI、Claude API、本地部署的模型等
+- 配置：
+  ```env
+  LLM_API_URL=your_compatible_api_endpoint
+  LLM_API_KEY=your_api_key
+  ```
+
+> **注意**: 不同模型的效果可能有差异，推荐使用硅基流动的DeepSeek模型，在FOFA查询转换任务上表现优异。
+
+### 2. 安装
+
+克隆仓库并安装依赖：
 
 ```bash
+git clone https://github.com/King-GD/NL2FOFA.git
+cd NL2FOFA
 npm install
 ```
 
-### 2. 配置环境变量
+### 3. 配置环境变量
 
-复制环境变量模板：
+复制环境变量模板文件：
+
 ```bash
 cp .env.example .env
 ```
 
-编辑 `.env` 文件，填入您的API密钥：
+然后，编辑 `.env` 文件，填入你的API密钥和账户信息：
+
 ```env
-# LLM API Configuration
-LLM_API_KEY=sk-your_siliconflow_api_key_here
+# LLM API 配置 (以硅基流动为例)
+LLM_API_KEY=sk-your_llm_api_key_here
 LLM_API_URL=https://api.siliconflow.cn/v1/chat/completions
 
-# FOFA API Configuration
+# FOFA API 配置
 FOFA_EMAIL=your_fofa_email@example.com
 FOFA_API_KEY=your_fofa_api_key_here
 ```
 
-**📖 配置说明**:
-- 目前使用硅基流动作为LLM服务提供商
-- 详细配置说明请参考 [配置指南](./CONFIGURATION.md)
+### 4. 构建项目
 
-### 3. 构建项目
+该项目使用 TypeScript 编写，需要先编译成 JavaScript：
 
 ```bash
 npm run build
 ```
 
-### 4. 运行工具
+## 🔧 使用方式
 
-#### 作为MCP服务器运行（推荐）
+你可以通过两种模式来使用 NL2FOFA：
+
+### 方式一：全局安装（推荐）
+
+#### 1. 安装
+
 ```bash
-# 启动MCP服务器
-npm run dev
+# 全局安装
+npm install -g .
 
-# 或者使用编译后的版本
-npm run build
-npm start
+# 或者从npm仓库安装（如果已发布）
+npm install -g nl2fofa
 ```
 
-MCP服务器提供以下工具：
-- `natural_language_query`: 自然语言转FOFA查询
-- `direct_fofa_query`: 直接执行FOFA查询
+#### 2. 使用
 
-#### 作为CLI工具运行
+安装后可以直接使用简洁的命令：
+
 ```bash
-# 自然语言查询模式
-npm run dev:cli "帮我找美国的nginx服务器"
-npm run dev:cli "查找中国的Spring Boot应用"
-npm run dev:cli "搜索开放了22端口的SSH服务"
+# 自然语言查询
+nl2fofa "帮我找美国的nginx服务器"
+nl2fofa "查找中国的Spring Boot应用"
 
-# 直接FOFA查询模式
-npm run dev:cli --direct 'app="nginx" && country="US"'
-npm run dev:cli --direct 'app="Apache-Spring-Boot" && country="CN"'
+# 直接FOFA查询
+nl2fofa --direct "server:Apache"
+nl2fofa --direct "port:80 && server:nginx"
+nl2fofa -d "title:登录"
 
 # 查看帮助
-npm run dev:cli --help
+nl2fofa --help
+nl2fofa -h
 ```
 
-## 🔧 MCP客户端配置
+### 方式二：使用npx（无需安装）
 
-### Claude Desktop配置
+```bash
+# 直接运行，无需全局安装
+npx nl2fofa "查找Apache服务器"
+npx nl2fofa --direct "server:nginx"
+npx nl2fofa --help
+```
 
-在Claude Desktop的配置文件中添加以下配置：
+### 方式三：本地开发模式
 
-**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+这是在项目目录中直接开发和测试的方式：
 
+```bash
+# 使用npm脚本（自动编译）
+npm run query "帮我找美国的nginx服务器"
+npm run direct -- "server:Apache"
+npm run help
+
+# 直接使用编译后的文件
+npm run build
+node dist/index.js "查找Apache服务器"
+node dist/index.js --direct "server:nginx"
+node dist/index.js --help
+```
+
+### 方式四：MCP服务器模式
+
+启动一个本地服务器，使其可以被任何支持 MCP 协议的AI客户端调用。
+
+#### 1. 启动服务器
+
+```bash
+# 生产模式启动
+npm start
+
+# 开发模式启动 (自动编译并启动)
+npm run dev
+```
+
+服务器启动后，会在标准输入输出流上监听来自MCP客户端的请求。
+
+#### 2. MCP客户端配置 (以Claude Desktop为例)
+
+在Claude Desktop的配置文件中，添加以下服务器配置：
+
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+**方式A: 使用相对路径（推荐）**
 ```json
 {
   "mcpServers": {
     "nl2fofa": {
       "command": "node",
-      "args": ["path/to/NL2FOFA/dist/mcp-server.js"],
+      "args": ["dist/mcp-server.js"],
+      "cwd": "E:/code/NL2FOFA",
       "env": {
-        "LLM_API_KEY": "your_llm_api_key",
+        "LLM_API_KEY": "sk-your_llm_api_key_here",
         "LLM_API_URL": "https://api.siliconflow.cn/v1/chat/completions",
         "FOFA_EMAIL": "your_fofa_email@example.com",
-        "FOFA_API_KEY": "your_fofa_api_key"
+        "FOFA_API_KEY": "your_fofa_api_key_here"
       }
     }
   }
 }
 ```
 
-### 其他MCP客户端
+**方式B: 使用绝对路径**
+```json
+{
+  "mcpServers": {
+    "nl2fofa": {
+      "command": "node",
+      "args": ["E:/code/NL2FOFA/dist/mcp-server.js"],
+      "env": {
+        "LLM_API_KEY": "sk-your_llm_api_key_here",
+        "LLM_API_URL": "https://api.siliconflow.cn/v1/chat/completions",
+        "FOFA_EMAIL": "your_fofa_email@example.com",
+        "FOFA_API_KEY": "your_fofa_api_key_here"
+      }
+    }
+  }
+}
+```
 
-对于其他支持MCP的客户端，请参考相应的配置文档，使用以下信息：
-- **服务器命令**: `node dist/mcp-server.js`
-- **工作目录**: NL2FOFA项目根目录
-- **环境变量**: 如上所示
-
-## 📖 使用示例
-
-### 自然语言查询示例
-
-**输入：**
+**方式C: 全局安装后使用（最简洁）**
 ```bash
-npm run dev "帮我找美国的nginx服务器"
+# 先全局安装
+npm install -g .
 ```
 
-**输出：**
-```
-🚀 NL2FOFA 工具启动
-📝 查询模式: 自然语言查询
-🔍 查询内容: 帮我找美国的nginx服务器
-================================================================================
-🤖 正在分析您的查询请求...
-✅ 查询语句生成成功: app="nginx" && country="US"
-📝 查询说明: 查找位于美国的nginx服务器
-🔍 正在执行FOFA查询...
-✅ 查询执行完成，找到 50 条结果
-
-================================================================================
-🔍 NL2FOFA 查询结果
-================================================================================
-📝 FOFA查询语句: app="nginx" && country="US"
-💡 查询说明: 查找位于美国的nginx服务器
-📊 结果数量: 50 条
-================================================================================
-
-┌─────────┬──────────────────┬────────┬──────────────────────────────────────────┬────────────────────────────────┐
-│ (index) │      IP地址      │  端口  │                   标题                   │              主机              │
-├─────────┼──────────────────┼────────┼──────────────────────────────────────────┼────────────────────────────────┤
-│    1    │   '192.168.1.1'  │  '80'  │           'Welcome to nginx!'            │        'example.com'           │
-│   ...   │       ...        │  ...   │                   ...                    │              ...               │
-└─────────┴──────────────────┴────────┴──────────────────────────────────────────┴────────────────────────────────┘
-
-📈 统计信息:
-🔌 常见端口:
-   80: 35 个
-   443: 12 个
-   8080: 3 个
-
-🌐 IP段分布:
-   192.168.x.x: 15 个
-   10.0.x.x: 8 个
-   172.16.x.x: 5 个
+```json
+{
+  "mcpServers": {
+    "nl2fofa": {
+      "command": "nl2fofa-mcp",
+      "env": {
+        "LLM_API_KEY": "sk-your_llm_api_key_here",
+        "LLM_API_URL": "https://api.siliconflow.cn/v1/chat/completions",
+        "FOFA_EMAIL": "your_fofa_email@example.com",
+        "FOFA_API_KEY": "your_fofa_api_key_here"
+      }
+    }
+  }
+}
 ```
 
-## 🔧 API配置
+> **路径说明**: 
+> - `args` 中的路径是相对于 `cwd` 工作目录的
+> - 如果不设置 `cwd`，则相对于MCP客户端的工作目录
+> - 全局安装后可直接使用命令名，无需指定路径
 
-### LLM API配置
+#### 3. 可用工具
 
-默认使用OpenAI API，您也可以配置其他兼容的API：
+服务器启动后，会向MCP客户端提供以下工具：
 
-```env
-LLM_API_KEY=your_api_key
-LLM_API_URL=https://api.openai.com/v1/chat/completions
-```
+- `natural_language_query(query: string, size?: number)`: 将自然语言转换为FOFA查询并执行
+- `direct_fofa_query(fofaQuery: string, size?: number)`: 直接执行FOFA查询语法
 
-### FOFA API配置
+## 💻 开发与脚本
 
-需要有效的FOFA账户和API密钥：
+本项目的所有可用脚本都定义在 `package.json` 中。
 
-```env
-FOFA_EMAIL=your_email@example.com
-FOFA_API_KEY=your_fofa_api_key
-```
-
-## 🛠️ 开发
-
-### 项目结构
-
-```
-NL2FOFA/
-├── src/                    # 源代码目录
-│   ├── index.ts           # 程序入口
-│   ├── orchestrator.ts    # 编排器
-│   ├── llmService.ts      # LLM服务
-│   ├── fofaService.ts     # FOFA服务
-│   ├── resultPresenter.ts # 结果处理器
-│   └── types.ts           # 类型定义
-├── dist/                  # 编译输出目录
-├── .env.example           # 环境变量模板
-├── package.json           # 项目配置
-├── tsconfig.json          # TypeScript配置
-└── README.md              # 项目文档
-```
-
-### 可用脚本
-
-```bash
-npm run build      # 编译TypeScript代码
-npm run start      # 运行MCP服务器（编译后）
-npm run start:cli  # 运行CLI工具（编译后）
-npm run dev        # 开发模式运行MCP服务器
-npm run dev:cli    # 开发模式运行CLI工具
-npm run clean      # 清理编译输出
-```
-
-### 添加新功能
-
-1. **扩展LLM提示词**: 修改 `src/llmService.ts` 中的 `buildPrompt` 方法
-2. **添加新的FOFA字段**: 修改 `src/fofaService.ts` 中的字段配置
-3. **自定义结果展示**: 修改 `src/resultPresenter.ts` 中的展示逻辑
-
-## 🤝 贡献
-
-欢迎提交Issue和Pull Request来改进这个项目！
-
-## 📄 许可证
-
-MIT License
+- `npm run build`: 编译 TypeScript 源代码到 `dist` 目录
+- `npm start`: 在生产模式下启动 MCP 服务器
+- `npm run start:cli`: 在生产模式下运行 CLI 工具
+- `npm run dev`: 在开发模式下启动 MCP 服务器，会先编译代码
+- `npm run dev:cli`: 在开发模式下运行 CLI 工具
+- `npm run query -- "..."`: 快捷方式，用于执行自然语言查询
+- `npm run direct -- "..."`: 快捷方式，用于执行直接 FOFA 查询
+- `npm run clean`: 删除已编译的 `dist` 目录
 
 ## ⚠️ 注意事项
 
-1. 请确保您有有效的FOFA API访问权限
-2. 注意API调用频率限制
-3. 保护好您的API密钥，不要提交到版本控制系统
-4. 本工具仅用于合法的安全研究目的
+- **API密钥安全**: 保护好你的 `.env` 文件，不要将你的API密钥提交到版本控制系统
+- **合法使用**: 本工具仅应用于授权的、合法的安全研究和资产测绘目的
+- **路径配置**: 在配置MCP客户端时，请确保 `cwd` 工作目录指向正确的项目根目录绝对路径
+
+## 📄 许可证
+
+本项目基于 MIT License.

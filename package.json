@@ -5,19 +5,23 @@
   "main": "dist/mcp-server.js",
   "type": "module",
   "bin": {
-    "nl2fofa-mcp": "dist/mcp-server.js",
-    "nl2fofa-cli": "dist/index.js"
+    "nl2fofa": "dist/index.js",
+    "nl2fofa-mcp": "dist/mcp-server.js"
   },
   "scripts": {
     "build": "tsc",
     "start": "node dist/mcp-server.js",
     "start:cli": "node dist/index.js",
     "dev": "npm run build && node dist/mcp-server.js",
-    "dev:cli": "ts-node src/index.ts",
+    "dev:cli": "npm run build && node dist/index.js",
     "dev:watch": "tsc --watch",
-    "test:simple": "node test/simple-test.js",
-    "test:full": "node test/mcp-test.js",
-    "test": "npm run build && npm run test:simple",
+    "prequery": "npm run build",
+    "query": "node dist/index.js",
+    "predirect": "npm run build",
+    "direct": "node dist/index.js --direct",
+    "prehelp": "npm run build",
+    "help": "node dist/index.js --help",
+    "postinstall": "npm run build",
     "clean": "rimraf dist"
   },
   "keywords": [

@@ -161,7 +161,7 @@ ${userInput}`;
     if (url.includes('siliconflow.cn')) {
       return {
         requestData: {
-          model: "Qwen/QwQ-32B",
+          model: "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
           messages: [
             {
               role: "user",
