@@ -11,6 +11,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/mcp-server.js",
+    "inspector": "npx @modelcontextprotocol/inspector node dist/mcp-server.js",
     "start:cli": "node dist/index.js",
     "dev": "npm run build && node dist/mcp-server.js",
     "dev:cli": "npm run build && node dist/index.js",
