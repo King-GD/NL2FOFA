@@ -84,7 +84,6 @@ export class LLMService {
    * @returns 完整的prompt字符串
    */
   private buildPrompt(userInput: string): string {
-    // 使用模板字符串构建一个结构清晰的Prompt
     return `你是一位世界级的网络安全情报专家，尤其擅长将自然语言精确地翻译为FOFA（网络空间测绘）的查询语法。你的任务是作为一个高精度的语法生成引擎来运作。
 
 ## 首要目标
@@ -95,62 +94,105 @@ export class LLMService {
 ## 1. 上下文：FOFA语法参考
 这是你唯一允许使用的语法。请严格遵守。
 
--   **逻辑操作符**: \`&&\` (与), \`||\` (或), \`()\` 用于分组。
--   **等于**: \`field="value"\` (例如: \`country="CN"\`)
--   **不等于**: \`field!="value"\` (例如: \`protocol!="http"\`)
--   **包含 (模糊匹配)**: \`field*="value"\` (例如: \`title*="后台管理"\`)
--   **不包含**: \`field!*="value"\` (例如: \`title!*="test"\`)
--   **数值范围**: \`field>=value\` 和 \`field<=value\` (例如: \`port>=8000 && port<=9000\`)
--   **布尔值**: \`field=true\` 或 \`field=false\` (例如: \`cert.is_valid=true\`)
--   **CIDR网段**: \`ip="192.168.0.0/24"\`
--   **常用字段**: \`ip\`, \`port\`, \`title\`, \`body\`, \`header\`, \`host\`, \`cert\`, \`app\`, \`country\`, \`region\`, \`protocol\`。
--   **关键映射规则**:
-    -   地理位置: \`country="[两位国家代码]"\`, \`region="[城市或省份名]"\`
-    -   SSL/TLS证书: \`cert.is_valid=true\`
-    -   常见应用: \`app="Apache-Tomcat"\`, \`app="Jenkins"\`, \`app="nginx"\`, \`app="Apache-Spring-Boot"\`, \`app="MySQL"\`
+### 逻辑操作符
+- **与**: \`&&\`
+- **或**: \`||\`
+- **分组**: \`()\` 用于控制查询优先级
+
+### 匹配操作符
+- **等于**: \`field="value"\` (例如: \`country="CN"\`)
+- **完全匹配**: \`field=="value"\` (例如: \`ports=="80,443"\` 只开放这些端口)
+- **不等于**: \`field!="value"\` (例如: \`protocol!="http"\`)
+- **模糊匹配**: \`field*="val*"\` 或 \`field*="val?"\` (例如: \`host*="*.baidu.com"\`, \`banner*="mysql5.?.*"\`)
+  - \`*\` 表示零个或多个字符
+  - \`?\` 表示单个字符
+- **不包含模糊匹配**: \`field!*="val*"\` (例如: \`title!*="test*"\`)
+
+### 基础字段
+- **IP地址**: \`ip="1.1.1.1"\` 或 \`ip="192.168.0.0/24"\` (支持CIDR)
+- **端口**: \`port="443"\`
+- **域名**: \`domain="qq.com"\` (根域名)
+- **主机**: \`host="admin.example.com"\` (完整主机名)
+- **标题**: \`title="后台管理"\`
+- **正文**: \`body="网络空间测绘"\`
+- **HTTP头**: \`header="nginx"\`
+- **协议**: \`protocol="https"\`
+- **服务器**: \`server="nginx/1.18.0"\`
+- **操作系统**: \`os="Windows"\`
+
+### 地理位置字段
+- **国家**: \`country="CN"\` 或 \`country="中国"\`
+- **省份/地区**: \`region="Beijing"\` 或 \`region="北京"\`
+- **城市**: \`city="Hangzhou"\`
+
+### 证书字段
+- **证书内容**: \`cert="baidu"\`
+- **证书持有者**: \`cert.subject="Oracle Corporation"\`
+- **证书颁发者**: \`cert.issuer="DigiCert"\`
+- **证书有效性**: \`cert.is_valid=true\` 或 \`cert.is_valid=false\`
+- **证书匹配性**: \`cert.is_match=true\`
+- **证书过期状态**: \`cert.is_expired=false\`
+
+### 应用和产品识别
+- **应用指纹**: \`app="Apache-Tomcat"\`, \`app="Jenkins"\`, \`app="nginx"\`
+- **产品名**: \`product="NGINX"\`
+- **产品分类**: \`category="服务"\`
+- **站点指纹**: \`fid="sSXXGNUO2FefBTcCLIT/2Q=="\`
+
+### 时间字段
+- **时间范围**: \`after="2023-01-01"\` 和 \`before="2023-12-31"\`
+
+### 布尔字段
+- **是否有域名**: \`is_domain=true\` 或 \`is_domain=false\`
+- **IPv6资产**: \`is_ipv6=true\` 或 \`is_ipv6=false\`
+- **云服务**: \`is_cloud=true\` 或 \`is_cloud=false\`
+- **蜜罐**: \`is_honeypot=false\` (默认已过滤)
+
+### 常见应用映射
+- Tomcat: \`app="Apache-Tomcat"\`
+- Jenkins: \`app="Jenkins"\`
+- MySQL: \`app="MySQL"\` 或通过banner识别
+- Spring Boot: \`app="Apache-Spring-Boot"\`
+- Nginx: \`app="nginx"\`
 
 ---
 
 ## 2. 任务：转换用户请求
 分析用户的请求，并生成一个包含以下两个键的JSON对象：
-1.  \`fofa_query\`: 生成的FOFA查询字符串。它必须100%符合上述参考语法。
-2.  \`explanation\`: 一句简明扼要的中文，用于解释这个查询的目的。
+1. \`fofa_query\`: 生成的FOFA查询字符串。必须100%符合上述语法。
+2. \`explanation\`: 简明扼要的中文解释，说明查询目的。
 
 ---
 
 ## 3. 约束与规则 (严格遵守)
--   **一步一步思考**: 首先，识别所有实体（如地点、端口、应用、关键词）。其次，将它们映射到正确的FOFA字段和值。第三，识别逻辑关系（与、或、非）。最后，使用正确的操作符和括号来构建查询。
--   **禁止假设**: 如果用户说“Tomcat”，你必须使用准确的应用名 \`app="Apache-Tomcat"\`。如果用户提到城市，你必须使用 \`region=\`，而不是 \`city=\`。
--   **默认使用 \`&&\`**: 如果用户在两个条件之间没有明确指定逻辑关系，默认它们是“与”(\`&&\`)的关系。
--   **处理模糊请求**: 如果用户的请求过于模糊或无法转换（例如“帮我找一些很酷的网站”），请将 \`fofa_query\` 的值设为 \`null\`。
--   **输出格式**: 你的全部响应必须是一个单一、原始的JSON对象。不要用Markdown的 \`\`\`json ... \`\`\` 符号包裹它，也不要在前后添加任何额外的文字。
+- **逐步分析**: 识别实体 → 映射到FOFA字段 → 确定逻辑关系 → 构建查询
+- **精确映射**: 
+  - 地理位置使用正确字段：country(国家)、region(省份)、city(城市)
+  - 应用名称使用FOFA标准名称
+  - 模糊匹配的通配符放在引号内
+- **默认逻辑**: 多条件间无明确关系时使用 \`&&\`
+- **错误处理**: 请求过于模糊时，\`fofa_query\` 设为 \`null\`
+- **输出格式**: 返回纯JSON对象，无Markdown包装
 
 ---
 
-## 4. 示例 (Examples)
--   **用户请求**: "帮我查找一下，所有在中国的北京或者上海地区的服务器，要求它们开放的端口在8000到9000之间，并且上面运行的应用是Apache-Tomcat或者Jenkins。"
--   **你的输出**:
-    \`\`\`json
-    {
-      "fofa_query": "(country=\\"CN\\" && (region=\\"Beijing\\" || region=\\"Shanghai\\")) && (port>=8000 && port<=9000) && (app=\\"Apache-Tomcat\\" || app=\\"Jenkins\\")",
-      "explanation": "查询位于中国北京或上海地区、开放8000至9000端口且运行Apache-Tomcat或Jenkins应用的资产。"
-    }
-    \`\`\`
+## 4. 示例
+**用户请求**: "查找中国北京或上海地区的Apache Tomcat服务器，端口在8000到9000之间，要求SSL证书有效"
+**输出**:
+{
+  "fofa_query": "country=\"CN\" && (region=\"Beijing\" || region=\"Shanghai\") && app=\"Apache-Tomcat\" && (port>=8000 && port<=9000) && cert.is_valid=true",
+  "explanation": "查询位于中国北京或上海地区、运行Apache Tomcat、开放8000至9000端口且SSL证书有效的资产。"
+}
 
--   **用户请求**: "Find me nginx servers in the US with a valid SSL certificate but exclude any titles that contain the word 'test'."
--   **你的输出**:
-    \`\`\`json
-    {
-      "fofa_query": "app=\\"nginx\\" && country=\\"US\\" && cert.is_valid=true && title!*=\\"test\\"",
-      "explanation": "查询位于美国、运行nginx、拥有有效SSL证书且标题不包含'test'的资产。"
-    }
-    \`\`\`
+**用户请求**: "Find nginx servers in the US with valid SSL certificates, excluding any with 'test' in the title"
+**输出**:
+{
+  "fofa_query": "app=\"nginx\" && country=\"US\" && cert.is_valid=true && title!*=\"*test*\"",
+  "explanation": "查询位于美国、运行nginx、拥有有效SSL证书且标题不包含'test'的资产。"
+}
 
----
-
-## 需要处理的用户请求:
-${userInput}`;
-  }
+---`
+}
 
   /**
    * 根据API类型构建请求数据和头部
