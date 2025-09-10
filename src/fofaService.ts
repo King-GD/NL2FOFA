@@ -71,7 +71,7 @@ export class FofaService {
         email: this.config.email,
         key: this.config.apiKey,
         qbase64: qbase64,
-        fields: "ip,port,title,host", // 只请求这几个字段以提高效率
+        fields: "ip,port,title,host",
         size: size,
         page: page,
       };
@@ -81,7 +81,7 @@ export class FofaService {
         `${this.FOFA_API_BASE}/api/v1/search/all`,
         {
           params: params,
-          timeout: 30000, // 30秒超时
+          timeout: 30000,
         }
       );
 
